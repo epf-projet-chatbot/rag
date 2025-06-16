@@ -30,19 +30,16 @@ def load_documents(folder_path):
             None
         """
         for file in Path(folder).glob("**/*"):
-            if file.is_dir():
-                aux_load_documents(str(file), docs)
-            elif file.suffix == ".pdf":
-                loader = PyPDFLoader(str(file))
-                docs.extend(loader.load())
-            elif file.suffix == ".md":
-                loader = UnstructuredMarkdownLoader(str(file))
-                docs.extend(loader.load())
-            elif file.suffix == ".json":
-                loader = JSONLoader(str(file), jq_schema='.', text_content=False)
-                docs.extend(loader.load())
-            else:
-                continue
+            if file.is_file():
+                if file.suffix == ".pdf":
+                    loader = PyPDFLoader(str(file))
+                    docs.extend(loader.load())
+                elif file.suffix == ".md":
+                    loader = UnstructuredMarkdownLoader(str(file))
+                    docs.extend(loader.load())
+                elif file.suffix == ".json":
+                    loader = JSONLoader(str(file), jq_schema='.', text_content=False)
+                    docs.extend(loader.load())
     aux_load_documents(folder_path, docs)
     print(f"{len(docs)} documents ont été chargés depuis {folder_path}")
     return docs

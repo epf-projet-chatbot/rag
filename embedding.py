@@ -3,15 +3,17 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 import getpass
 import os
+from dotenv import load_dotenv
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-CHROMA_PATH = "chroma_db"
+# Load environment variables first
+load_dotenv()
 
-if not os.environ.get("GOOGLE_API_KEY"):
-    os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter API key for Google Gemini: ")
+CHROMA_PATH = os.getenv("CHROMA_PATH", "chroma_db")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Initialisation des embeddings
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
 
 def embed(text: str) -> list[float]:
     """
@@ -40,7 +42,7 @@ def add_to_chroma(chunks: list[Document]):
     """
     try:
         db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
-        
+        max =db._client.get_max_batch_size()
         # Obtenir les IDs existants pour éviter les doublons
         existing_ids = set()
         try:
@@ -70,8 +72,12 @@ def add_to_chroma(chunks: list[Document]):
             chunk_ids.append(chunk_id)
             existing_ids.add(chunk_id)
         
-        db.add_documents(chunks, ids=chunk_ids)
-        print(f"{len(chunks)} chunks ajoutés à la base de données Chroma.")
+        # Ajouter les documents par paquets de taille max
+        for i in range(0, len(chunks), max):
+            batch_chunks = chunks[i:i + max]
+            batch_ids = chunk_ids[i:i + max]
+            db.add_documents(batch_chunks, ids=batch_ids)
+            print(f"{len(chunks)} chunks ajoutés à la base de données Chroma.")
         
     except Exception as e:
         print(f"Erreur lors de l'ajout à Chroma : {e}")
@@ -81,13 +87,16 @@ if __name__ == "__main__":
     Point d'entrée pour le script.
     Charge les documents, les prétraite, les vectorise et les ajoute à la base de données Chroma.
     """
-    # Test de la fonction embed
-    test_text = "Quelle est la fourchette du JEH ?"
-    embedding_vector = embed(test_text)
-    print(f"Embedding pour '{test_text}': {len(embedding_vector)} dimensions")
     
     # Chargement et ajout des documents
-    documents = process_documents("data")
-    add_to_chroma(documents)
+    data_path = "./data/data_complete"
+    if not os.path.exists(data_path):
+        print(f"Erreur : Le répertoire {data_path} n'existe pas.")
+        exit(1)
     
-    print("Chroma DB mise à jour avec succès.")
+    documents = process_documents(data_path)
+    if documents:
+        add_to_chroma(documents)
+        print("Chroma DB mise à jour avec succès.")
+    else:
+        print("Aucun document trouvé à traiter.")
