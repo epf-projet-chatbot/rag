@@ -12,7 +12,7 @@ load_dotenv()
 CHROMA_PATH = os.getenv("CHROMA_PATH", "chroma_db")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Initialisation des embeddings
+# Initialisation des embeddingsd
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
 
 def embed(text: str) -> list[float]:
@@ -41,7 +41,7 @@ def add_to_chroma(chunks: list[Document]):
         chunks (list[Document]): Liste de documents à ajouter.
     """
     try:
-        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+        db = Chroma(collection_name="rag_chatbot", persist_directory=CHROMA_PATH, embedding_function=embeddings)
         max =db._client.get_max_batch_size()
         # Obtenir les IDs existants pour éviter les doublons
         existing_ids = set()
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     """
     
     # Chargement et ajout des documents
-    data_path = "./data/data_complete"
+    data_path = "./data/data_test"
     if not os.path.exists(data_path):
         print(f"Erreur : Le répertoire {data_path} n'existe pas.")
         exit(1)
