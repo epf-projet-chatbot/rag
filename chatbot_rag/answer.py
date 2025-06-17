@@ -32,9 +32,25 @@ rag_chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": custom_prompt}
 )
 
-query = input("Posez votre question juridique sur les Junior Entreprises : ")
-result = rag_chain.invoke({"query": query})
+def process_documents():
+    query = input("Posez votre question juridique sur les Junior Entreprises : ")
+    result = rag_chain.invoke({"query": query})
 
-print("Réponse :", result["result"])
-for doc in result["source_documents"]:
-    print(f"Source: {doc.metadata.get('source')}, page: {doc.metadata.get('page')}")
+    print("Réponse :", result["result"])
+    for doc in result["source_documents"]:
+        print(f"Source: {doc.metadata.get('source')}, page: {doc.metadata.get('page')}")
+    
+    
+def answer(query: str) -> str :
+    """
+    Fonction pour répondre à une question juridique en utilisant RAG.
+    
+    Cette fonction utilise un modèle de langage pour générer une réponse basée sur des documents
+    récupérés par un moteur de recherche vectoriel.
+    
+    Returns:
+        str: La réponse générée par le modèle de langage.
+    """
+    result = rag_chain.invoke({"query": query})
+    
+    return result["result"]
