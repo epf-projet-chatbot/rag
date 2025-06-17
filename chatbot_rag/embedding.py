@@ -1,4 +1,4 @@
-from chatbot_rag.loader import process_documents
+from loader import process_documents
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 import getpass
