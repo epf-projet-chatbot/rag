@@ -1,0 +1,9 @@
+services:
+  answer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python chatbot_rag/embedding.py && python chatbot_rag/answer.py"
+    env_file:
+      - .env
+    restart: "no"
